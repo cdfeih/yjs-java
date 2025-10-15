@@ -69,7 +69,7 @@ public class RestApiController {
     /**
      * 在文档中创建YArray
      * @param docId 文档ID
-     * @param name 数组名称
+     * @param request 数组请求体
      * @return 创建的YArray信息
      */
     @PostMapping("/documents/{docId}/arrays")
@@ -93,7 +93,7 @@ public class RestApiController {
     /**
      * 在文档中创建YMap
      * @param docId 文档ID
-     * @param name 映射名称
+     * @param request 映射名称
      * @return 创建的YMap信息
      */
     @PostMapping("/documents/{docId}/maps")
@@ -117,7 +117,7 @@ public class RestApiController {
     /**
      * 在文档中创建YText
      * @param docId 文档ID
-     * @param name 文本名称
+     * @param request 文本名称
      * @return 创建的YText信息
      */
     @PostMapping("/documents/{docId}/texts")
