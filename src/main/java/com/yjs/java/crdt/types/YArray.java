@@ -23,12 +23,14 @@ public class YArray extends BaseCRDT {
 
     private List<Object> elements;
     private Map<String, Integer> elementIds;
+    private Map<Integer, String> indexToId;
     private final ReadWriteLock lock;
 
     public YArray() {
         super();
         this.elements = new CopyOnWriteArrayList<>();
         this.elementIds = new HashMap<>();
+        this.indexToId = new HashMap<>();
         this.lock = new ReentrantReadWriteLock();
     }
 
@@ -41,7 +43,9 @@ public class YArray extends BaseCRDT {
     public int add(Object element) {
         String elementId = generateElementId();
         elements.add(element);
-        elementIds.put(elementId, elements.size() - 1);
+        int index = elements.size() - 1;
+        elementIds.put(elementId, index);
+        indexToId.put(index, elementId);
         incrementVersion();
         return elements.size();
     }
@@ -63,6 +67,7 @@ public class YArray extends BaseCRDT {
         // 更新索引映射
         updateElementIdsAfterInsert(index);
         elementIds.put(elementId, index);
+        indexToId.put(index, elementId);
         incrementVersion();
     }
 
@@ -93,16 +98,10 @@ public class YArray extends BaseCRDT {
         Object removed = elements.remove(index);
 
         // 移除对应的元素ID
-        String elementIdToRemove = null;
-        for (Map.Entry<String, Integer> entry : elementIds.entrySet()) {
-            if (entry.getValue() == index) {
-                elementIdToRemove = entry.getKey();
-                break;
-            }
-        }
-
+        String elementIdToRemove = indexToId.get(index);
         if (elementIdToRemove != null) {
             elementIds.remove(elementIdToRemove);
+            indexToId.remove(index);
         }
 
         // 更新索引映射
@@ -153,6 +152,7 @@ public class YArray extends BaseCRDT {
     public void clear() {
         elements.clear();
         elementIds.clear();
+        indexToId.clear();
         incrementVersion();
     }
 
@@ -166,22 +166,35 @@ public class YArray extends BaseCRDT {
         if (shouldMerge(other)) {
             lock.writeLock().lock();
             try {
-                // 合并两个数组的所有元素
-                List<Object> mergedElements = new ArrayList<>(elements);
-
-                // 添加对方数组的所有元素
-                for (int i = 0; i < otherArray.size(); i++) {
-                    mergedElements.add(otherArray.get(i));
+                // 创建一个映射来跟踪元素的唯一标识符
+                Map<String, Object> allElements = new HashMap<>();
+                
+                // 添加本地元素
+                for (Map.Entry<String, Integer> entry : this.elementIds.entrySet()) {
+                    allElements.put(entry.getKey(), this.elements.get(entry.getValue()));
                 }
-
-                // 重新生成所有元素ID映射
+                
+                // 添加远程元素
+                for (Map.Entry<String, Integer> entry : otherArray.elementIds.entrySet()) {
+                    allElements.put(entry.getKey(), otherArray.elements.get(entry.getValue()));
+                }
+                
+                // 重建数组
+                List<Object> mergedElements = new ArrayList<>();
                 Map<String, Integer> mergedIds = new HashMap<>();
-                for (int i = 0; i < mergedElements.size(); i++) {
-                    mergedIds.put(generateElementId(), i);
+                Map<Integer, String> mergedIndexToId = new HashMap<>();
+                
+                int index = 0;
+                for (Map.Entry<String, Object> entry : allElements.entrySet()) {
+                    mergedElements.add(entry.getValue());
+                    mergedIds.put(entry.getKey(), index);
+                    mergedIndexToId.put(index, entry.getKey());
+                    index++;
                 }
-
+                
                 this.elements = new CopyOnWriteArrayList<>(mergedElements);
                 this.elementIds = mergedIds;
+                this.indexToId = mergedIndexToId;
                 this.version = Math.max(this.version, otherArray.getVersion());
                 this.timestamp = Math.max(this.timestamp, otherArray.getTimestamp());
 
@@ -276,11 +289,17 @@ public class YArray extends BaseCRDT {
      * @param startIndex 起始索引
      */
     private void updateElementIdsAfterInsert(int startIndex) {
+        Map<Integer, String> newIndexToId = new HashMap<>();
         for (Map.Entry<String, Integer> entry : elementIds.entrySet()) {
             if (entry.getValue() >= startIndex) {
-                entry.setValue(entry.getValue() + 1);
+                int newIndex = entry.getValue() + 1;
+                entry.setValue(newIndex);
+                newIndexToId.put(newIndex, entry.getKey());
+            } else {
+                newIndexToId.put(entry.getValue(), entry.getKey());
             }
         }
+        this.indexToId = newIndexToId;
     }
 
     /**
@@ -289,11 +308,17 @@ public class YArray extends BaseCRDT {
      * @param startIndex 起始索引
      */
     private void updateElementIdsAfterRemove(int startIndex) {
+        Map<Integer, String> newIndexToId = new HashMap<>();
         for (Map.Entry<String, Integer> entry : elementIds.entrySet()) {
             if (entry.getValue() > startIndex) {
-                entry.setValue(entry.getValue() - 1);
+                int newIndex = entry.getValue() - 1;
+                entry.setValue(newIndex);
+                newIndexToId.put(newIndex, entry.getKey());
+            } else {
+                newIndexToId.put(entry.getValue(), entry.getKey());
             }
         }
+        this.indexToId = newIndexToId;
     }
 
 }

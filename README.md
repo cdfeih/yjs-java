@@ -165,6 +165,60 @@ doc1.merge(doc2);
 }
 ```
 
+## 前端集成示例
+
+项目包含一个简单的前端示例页面，在`src/main/resources/static/index.html`中。
+
+要使用WebSocket进行协同编辑，请按照以下步骤操作：
+
+1. 建立WebSocket连接：
+```javascript
+const socket = new SockJS('/yjs-websocket');
+const stompClient = Stomp.over(socket);
+stompClient.connect({}, function (frame) {
+    // 连接成功
+});
+```
+
+2. 订阅相关主题：
+```javascript
+// 订阅操作广播
+stompClient.subscribe('/topic/operations', function (message) {
+    // 处理接收到的操作
+});
+
+// 订阅连接状态变化
+stompClient.subscribe('/topic/connections', function (message) {
+    // 处理连接状态变化
+});
+```
+
+3. 发送连接消息：
+```javascript
+const connectMessage = {
+    clientId: 'unique-client-id',
+    docId: 'document-id'
+};
+stompClient.send("/app/connect", {}, JSON.stringify(connectMessage));
+```
+
+4. 发送操作：
+```javascript
+const operation = {
+    operationId: 'unique-operation-id',
+    operationType: 'INSERT',
+    targetId: 'target-crdt-id',
+    timestamp: Date.now(),
+    data: {
+        index: 0,
+        text: 'Hello World'
+    }
+};
+stompClient.send("/app/operation", {}, JSON.stringify(operation));
+```
+
+更详细的使用说明请参考项目根目录下的[USAGE.md](USAGE.md)文件。
+
 ## 测试
 
 运行单元测试：

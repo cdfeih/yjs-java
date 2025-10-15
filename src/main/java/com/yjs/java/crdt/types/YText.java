@@ -6,6 +6,8 @@ import com.yjs.java.crdt.operation.CRDTOperation;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -213,6 +215,7 @@ public class YText extends BaseCRDT {
         try {
             head.next = tail;
             tail.prev = head;
+            nodes.clear();
             length = 0;
             incrementVersion();
         } finally {
@@ -227,19 +230,54 @@ public class YText extends BaseCRDT {
         }
 
         YText otherText = (YText) other;
-        if (shouldMerge(other)) {
-            lock.writeLock().lock();
-            try {
-                // 简单实现：如果对方版本更新，则直接替换本地文本
-                // 在实际应用中，需要实现更复杂的合并算法，如LWW-Element-Set
-                String otherContent = otherText.toString();
-                clear();
-                append(otherContent);
-                this.version = Math.max(this.version, otherText.getVersion());
-                this.timestamp = Math.max(this.timestamp, otherText.getTimestamp());
-            } finally {
-                lock.writeLock().unlock();
+        lock.writeLock().lock();
+        try {
+            // 收集所有节点，使用ID作为键以避免重复
+            Map<String, Node> allNodes = new HashMap<>();
+            
+            // 添加本地节点
+            Node current = this.head.next;
+            while (current != this.tail) {
+                allNodes.put(current.id, current);
+                current = current.next;
             }
+            
+            // 添加远程节点
+            current = otherText.head.next;
+            while (current != otherText.tail) {
+                // 如果本地已存在该节点ID，比较时间戳
+                if (allNodes.containsKey(current.id)) {
+                    Node existingNode = allNodes.get(current.id);
+                    // 保留时间戳较新的节点
+                    if (current.timestamp > existingNode.timestamp) {
+                        allNodes.put(current.id, current);
+                    }
+                } else {
+                    // 新节点直接添加
+                    allNodes.put(current.id, current);
+                }
+                current = current.next;
+            }
+            
+            // 重建文本链表
+            this.head.next = this.tail;
+            this.tail.prev = this.head;
+            this.nodes.clear();
+            this.length = 0;
+            
+            // 按时间戳排序节点
+            allNodes.values().stream()
+                .sorted(Comparator.comparingLong(n -> n.timestamp))
+                .forEach(node -> {
+                    Node newNode = new Node(node.value, node.id, node.timestamp);
+                    insertBefore(this.tail, newNode);
+                });
+            
+            this.version = Math.max(this.version, otherText.getVersion());
+            this.timestamp = Math.max(this.timestamp, otherText.getTimestamp());
+            incrementVersion();
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -324,6 +362,7 @@ public class YText extends BaseCRDT {
         newNode.next = target;
         target.prev.next = newNode;
         target.prev = newNode;
+        nodes.put(newNode.id, newNode);
         length++;
     }
 
@@ -334,6 +373,7 @@ public class YText extends BaseCRDT {
 
         node.prev.next = node.next;
         node.next.prev = node.prev;
+        nodes.remove(node.id);
         length--;
     }
 

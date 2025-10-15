@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yjs-Java 协同编辑示例</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .editor {
+            width: 100%;
+            height: 200px;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .connected {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Yjs-Java 协同编辑示例</h1>
+        
+        <div id="status" class="status disconnected">未连接</div>
+        
+        <div class="controls">
+            <button id="connectBtn">连接</button>
+            <button id="disconnectBtn" disabled>断开连接</button>
+            <input type="text" id="docIdInput" placeholder="文档ID" value="doc1">
+            <input type="text" id="clientIdInput" placeholder="客户端ID" value="client1">
+        </div>
+        
+        <textarea id="editor" class="editor" placeholder="在此处编辑文本..."></textarea>
+        
+        <div class="controls">
+            <button id="syncBtn">同步文档</button>
+        </div>
+        
+        <h2>操作日志</h2>
+        <div id="log" class="editor" style="height: 150px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        // 全局变量
+        let stompClient = null;
+        let docId = 'doc1';
+        let clientId = 'client1';
+        
+        // DOM元素
+        const statusEl = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const docIdInput = document.getElementById('docIdInput');
+        const clientIdInput = document.getElementById('clientIdInput');
+        const editor = document.getElementById('editor');
+        const syncBtn = document.getElementById('syncBtn');
+        const logEl = document.getElementById('log');
+        
+        // 连接到WebSocket服务器
+        function connect() {
+            docId = docIdInput.value || 'doc1';
+            clientId = clientIdInput.value || 'client1';
+            
+            const socket = new SockJS('/yjs-websocket');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function (frame) {
+                log('连接成功: ' + frame);
+                updateStatus(true);
+                
+                // 订阅操作主题
+                stompClient.subscribe('/topic/operations', function (message) {
+                    const operation = JSON.parse(message.body);
+                    log('收到操作: ' + JSON.stringify(operation));
+                    // 在实际应用中，这里应该应用接收到的操作
+                });
+                
+                // 订阅连接主题
+                stompClient.subscribe('/topic/connections', function (message) {
+                    const connectionInfo = JSON.parse(message.body);
+                    log('连接状态变化: ' + JSON.stringify(connectionInfo));
+                });
+                
+                // 订阅用户特定队列
+                stompClient.subscribe('/user/queue/document', function (message) {
+                    const documentState = JSON.parse(message.body);
+                    log('收到文档状态: ' + JSON.stringify(documentState));
+                });
+                
+                // 发送连接消息
+                sendConnectMessage();
+            });
+        }
+        
+        // 断开连接
+        function disconnect() {
+            if (stompClient !== null) {
+                sendDisconnectMessage();
+                stompClient.disconnect();
+            }
+            updateStatus(false);
+            log('断开连接');
+        }
+        
+        // 发送连接消息
+        function sendConnectMessage() {
+            if (stompClient && stompClient.connected) {
+                const connectMessage = {
+                    clientId: clientId,
+                    docId: docId
+                };
+                stompClient.send("/app/connect", {}, JSON.stringify(connectMessage));
+                log('发送连接消息: ' + JSON.stringify(connectMessage));
+            }
+        }
+        
+        // 发送断开连接消息
+        function sendDisconnectMessage() {
+            if (stompClient && stompClient.connected) {
+                const disconnectMessage = {
+                    clientId: clientId,
+                    docId: docId
+                };
+                stompClient.send("/app/disconnect", {}, JSON.stringify(disconnectMessage));
+                log('发送断开连接消息: ' + JSON.stringify(disconnectMessage));
+            }
+        }
+        
+        // 发送操作
+        function sendOperation(operation) {
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/operation", {}, JSON.stringify(operation));
+                log('发送操作: ' + JSON.stringify(operation));
+            }
+        }
+        
+        // 同步文档
+        function syncDocument() {
+            // 在实际应用中，这里应该发送当前文档状态到服务器
+            log('同步文档状态');
+        }
+        
+        // 更新连接状态显示
+        function updateStatus(connected) {
+            if (connected) {
+                statusEl.textContent = '已连接';
+                statusEl.className = 'status connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                statusEl.textContent = '未连接';
+                statusEl.className = 'status disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+            }
+        }
+        
+        // 添加日志
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${time}] ${message}`;
+            logEl.appendChild(logEntry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+        
+        // 事件监听器
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        syncBtn.addEventListener('click', syncDocument);
+        
+        // 编辑器输入事件
+        editor.addEventListener('input', function() {
+            // 在实际应用中，这里应该创建并发送操作
+            log('编辑器内容发生变化');
+        });
+        
+        // 页面加载完成后的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            log('页面加载完成');
+        });
+    </script>
+</body>
+</html>
