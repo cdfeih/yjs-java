@@ -5,9 +5,15 @@ import com.yjs.java.crdt.CRDT;
 import com.yjs.java.crdt.operation.CRDTOperation;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * YMap是一个分布式键值对CRDT实现，支持并发读写
@@ -27,7 +33,8 @@ public class YMap extends BaseCRDT {
 
     /**
      * 存储键值对
-     * @param key 键
+     *
+     * @param key   键
      * @param value 值
      * @return 之前的值，如果不存在则返回null
      */
@@ -40,6 +47,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 获取键对应的值
+     *
      * @param key 键
      * @return 值，如果不存在则返回null
      */
@@ -49,6 +57,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 检查是否包含指定的键
+     *
      * @param key 键
      * @return 是否包含
      */
@@ -58,6 +67,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 移除指定的键值对
+     *
      * @param key 键
      * @return 被移除的值
      */
@@ -70,6 +80,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 获取映射的大小
+     *
      * @return 大小
      */
     public int size() {
@@ -78,6 +89,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 检查映射是否为空
+     *
      * @return 是否为空
      */
     public boolean isEmpty() {
@@ -95,6 +107,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 获取所有键的集合
+     *
      * @return 键集合
      */
     public Set<String> keySet() {
@@ -103,6 +116,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 获取所有值的集合
+     *
      * @return 值集合
      */
     public Collection<Object> values() {
@@ -111,6 +125,7 @@ public class YMap extends BaseCRDT {
 
     /**
      * 获取所有键值对的集合
+     *
      * @return 键值对集合
      */
     public Set<Map.Entry<String, Object>> entrySet() {
@@ -122,21 +137,21 @@ public class YMap extends BaseCRDT {
         if (other == null || other == this || !(other instanceof YMap)) {
             return;
         }
-        
+
         YMap otherMap = (YMap) other;
-        
+
         // 对于每个键，选择时间戳最新的值
         for (String key : otherMap.keySet()) {
             Long otherTimestamp = otherMap.entryTimestamps.get(key);
             Long localTimestamp = this.entryTimestamps.get(key);
-            
+
             // 如果本地没有该键，或者对方的时间戳更新，则更新本地值
             if (!this.containsKey(key) || (otherTimestamp != null && localTimestamp != null && otherTimestamp > localTimestamp)) {
                 this.entries.put(key, otherMap.get(key));
                 this.entryTimestamps.put(key, otherTimestamp);
             }
         }
-        
+
         // 更新版本和时间戳
         this.version = Math.max(this.version, otherMap.getVersion());
         this.timestamp = Math.max(this.timestamp, otherMap.getTimestamp());
@@ -154,7 +169,7 @@ public class YMap extends BaseCRDT {
         if (!(operation instanceof CRDTOperation)) {
             return;
         }
-        
+
         CRDTOperation op = (CRDTOperation) operation;
         switch (op.getOperationType()) {
             case INSERT:

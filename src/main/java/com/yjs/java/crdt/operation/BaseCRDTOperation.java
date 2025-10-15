@@ -2,8 +2,9 @@ package com.yjs.java.crdt.operation;
 
 import lombok.Getter;
 import lombok.Setter;
-import java.util.Map;
+
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * CRDT操作的基础实现类

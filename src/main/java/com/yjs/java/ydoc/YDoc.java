@@ -2,12 +2,18 @@ package com.yjs.java.ydoc;
 
 import com.yjs.java.crdt.CRDT;
 import com.yjs.java.crdt.operation.CRDTOperation;
-import com.yjs.java.crdt.operation.BaseCRDTOperation;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * YDoc是YJS的核心文档类，负责协调所有CRDT实例
@@ -34,6 +40,7 @@ public class YDoc {
 
     /**
      * 注册共享类型
+     *
      * @param name 类型名称
      * @param crdt CRDT实例
      */
@@ -44,6 +51,7 @@ public class YDoc {
 
     /**
      * 获取共享类型
+     *
      * @param name 类型名称
      * @return CRDT实例
      */
@@ -53,6 +61,7 @@ public class YDoc {
 
     /**
      * 应用操作
+     *
      * @param operation 要应用的操作
      */
     public void applyOperation(CRDTOperation operation) {
@@ -68,6 +77,7 @@ public class YDoc {
 
     /**
      * 应用一系列操作
+     *
      * @param operations 操作列表
      */
     public void applyOperations(List<CRDTOperation> operations) {
@@ -76,6 +86,7 @@ public class YDoc {
 
     /**
      * 合并另一个文档的状态
+     *
      * @param other 要合并的文档
      */
     public void merge(YDoc other) {
@@ -115,6 +126,7 @@ public class YDoc {
 
     /**
      * 生成文档的状态快照
+     *
      * @return 文档状态
      */
     public Map<String, Object> getState() {
@@ -129,6 +141,7 @@ public class YDoc {
 
     /**
      * 添加客户端
+     *
      * @param clientId 客户端ID
      */
     public void addClient(String clientId) {
@@ -137,6 +150,7 @@ public class YDoc {
 
     /**
      * 移除客户端
+     *
      * @param clientId 客户端ID
      */
     public void removeClient(String clientId) {
@@ -145,6 +159,7 @@ public class YDoc {
 
     /**
      * 获取客户端数量
+     *
      * @return 客户端数量
      */
     public int getClientCount() {

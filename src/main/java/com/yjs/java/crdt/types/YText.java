@@ -5,7 +5,8 @@ import com.yjs.java.crdt.CRDT;
 import com.yjs.java.crdt.operation.CRDTOperation;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.*;
+
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -53,6 +54,7 @@ public class YText extends BaseCRDT {
 
     /**
      * 追加文本到末尾
+     *
      * @param text 要追加的文本
      * @return 追加后的文本长度
      */
@@ -60,7 +62,7 @@ public class YText extends BaseCRDT {
         if (text == null || text.isEmpty()) {
             return length;
         }
-        
+
         lock.writeLock().lock();
         try {
             for (int i = 0; i < text.length(); i++) {
@@ -75,18 +77,19 @@ public class YText extends BaseCRDT {
 
     /**
      * 在指定位置插入文本
+     *
      * @param index 插入位置
-     * @param text 要插入的文本
+     * @param text  要插入的文本
      */
     public void insert(int index, String text) {
         if (text == null || text.isEmpty()) {
             return;
         }
-        
+
         if (index < 0 || index > length) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + length);
         }
-        
+
         lock.writeLock().lock();
         try {
             Node current = getNodeAt(index);
@@ -99,9 +102,10 @@ public class YText extends BaseCRDT {
             lock.writeLock().unlock();
         }
     }
-    
+
     /**
      * 内部方法：检查是否应该合并另一个CRDT实例
+     *
      * @param other 要合并的CRDT实例
      * @return 是否应该合并
      */
@@ -111,40 +115,41 @@ public class YText extends BaseCRDT {
             return false;
         }
         YText otherText = (YText) other;
-        return otherText.getVersion() > this.version || 
-               (otherText.getVersion() == this.version && otherText.getTimestamp() > this.timestamp);
+        return otherText.getVersion() > this.version ||
+                (otherText.getVersion() == this.version && otherText.getTimestamp() > this.timestamp);
     }
 
     /**
      * 删除指定范围的文本
+     *
      * @param start 起始位置（包含）
-     * @param end 结束位置（不包含）
+     * @param end   结束位置（不包含）
      * @return 删除的文本
      */
     public String delete(int start, int end) {
         if (start < 0 || end > length || start >= end) {
             throw new IndexOutOfBoundsException("Invalid range: [" + start + ", " + end + ")");
         }
-        
+
         lock.writeLock().lock();
         try {
             StringBuilder deletedText = new StringBuilder();
             Node startNode = getNodeAt(start);
-            
+
             for (int i = start; i < end; i++) {
                 deletedText.append(startNode.value);
                 Node next = startNode.next;
                 removeNode(startNode);
                 startNode = next;
             }
-            
+
             incrementVersion();
             return deletedText.toString();
         } finally {
             lock.writeLock().unlock();
         }
     }
-    
+
     @Override
     protected void incrementVersion() {
         this.version++;
@@ -153,6 +158,7 @@ public class YText extends BaseCRDT {
 
     /**
      * 获取文本长度
+     *
      * @return 文本长度
      */
     public int length() {
@@ -166,6 +172,7 @@ public class YText extends BaseCRDT {
 
     /**
      * 检查文本是否为空
+     *
      * @return 是否为空
      */
     public boolean isEmpty() {
@@ -179,6 +186,7 @@ public class YText extends BaseCRDT {
 
     /**
      * 转换为字符串
+     *
      * @return 文本内容
      */
     @Override
@@ -217,7 +225,7 @@ public class YText extends BaseCRDT {
         if (other == null || other == this || !(other instanceof YText)) {
             return;
         }
-        
+
         YText otherText = (YText) other;
         if (shouldMerge(other)) {
             lock.writeLock().lock();
@@ -245,7 +253,7 @@ public class YText extends BaseCRDT {
         if (!(operation instanceof CRDTOperation)) {
             return;
         }
-        
+
         CRDTOperation op = (CRDTOperation) operation;
         switch (op.getOperationType()) {
             case INSERT:
@@ -287,7 +295,7 @@ public class YText extends BaseCRDT {
         if (index < 0 || index > length) {
             throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + length);
         }
-        
+
         Node current;
         if (index < length / 2) {
             // 从头部开始查找
@@ -302,7 +310,7 @@ public class YText extends BaseCRDT {
                 current = current.prev;
             }
         }
-        
+
         return current;
     }
 
@@ -323,7 +331,7 @@ public class YText extends BaseCRDT {
         if (node == head || node == tail) {
             return;
         }
-        
+
         node.prev.next = node.next;
         node.next.prev = node.prev;
         length--;

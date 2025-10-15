@@ -2,6 +2,7 @@ package com.yjs.java.crdt;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import java.util.UUID;
 
 /**
@@ -50,13 +51,14 @@ public abstract class BaseCRDT implements CRDT {
 
     /**
      * 检查是否需要合并
+     *
      * @param other 要比较的CRDT实例
      * @return 是否需要合并
      */
     protected boolean shouldMerge(CRDT other) {
         if (other instanceof BaseCRDT) {
             BaseCRDT otherBase = (BaseCRDT) other;
-            return otherBase.version > this.version || 
+            return otherBase.version > this.version ||
                     (otherBase.version == this.version && otherBase.timestamp > this.timestamp);
         }
         return true;
