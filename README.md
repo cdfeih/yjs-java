@@ -1,3 +1,5 @@
+> 公司项目需要用到多人实时协同方案，做的一些调研和实践。
+
 # YJS-Java: Java实现的YJS (CRDT) 库
 
 YJS-Java是一个使用Java实现的YJS (CRDT) 库，基于Spring Boot 3和JDK 21开发。它提供了分布式数据结构的实现，支持实时协作编辑和数据同步。
