@@ -1,11 +1,11 @@
 package com.cdfeih.yjs.java.service;
 
-import com.yjs.java.crdt.CRDT;
-import com.yjs.java.crdt.operation.CRDTOperation;
-import com.yjs.java.crdt.types.YArray;
-import com.yjs.java.crdt.types.YMap;
-import com.yjs.java.crdt.types.YText;
-import com.yjs.java.ydoc.YDoc;
+import com.cdfeih.yjs.java.crdt.CRDT;
+import com.cdfeih.yjs.java.crdt.operation.CRDTOperation;
+import com.cdfeih.yjs.java.crdt.types.YArray;
+import com.cdfeih.yjs.java.crdt.types.YMap;
+import com.cdfeih.yjs.java.crdt.types.YText;
+import com.cdfeih.yjs.java.ydoc.YDoc;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;

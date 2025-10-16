@@ -1,11 +1,11 @@
 package com.cdfeih.yjs.java;
 
-import com.yjs.java.crdt.operation.BaseCRDTOperation;
-import com.yjs.java.crdt.operation.CRDTOperation;
-import com.yjs.java.crdt.types.YArray;
-import com.yjs.java.crdt.types.YMap;
-import com.yjs.java.crdt.types.YText;
-import com.yjs.java.ydoc.YDoc;
+import com.cdfeih.yjs.java.crdt.operation.BaseCRDTOperation;
+import com.cdfeih.yjs.java.crdt.operation.CRDTOperation;
+import com.cdfeih.yjs.java.crdt.types.YArray;
+import com.cdfeih.yjs.java.crdt.types.YMap;
+import com.cdfeih.yjs.java.crdt.types.YText;
+import com.cdfeih.yjs.java.ydoc.YDoc;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

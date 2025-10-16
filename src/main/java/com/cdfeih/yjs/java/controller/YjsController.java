@@ -1,7 +1,7 @@
 package com.cdfeih.yjs.java.controller;
 
-import com.yjs.java.crdt.operation.CRDTOperation;
-import com.yjs.java.ydoc.YDoc;
+import com.cdfeih.yjs.java.crdt.operation.CRDTOperation;
+import com.cdfeih.yjs.java.ydoc.YDoc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

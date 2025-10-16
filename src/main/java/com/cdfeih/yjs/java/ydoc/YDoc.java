@@ -1,7 +1,7 @@
 package com.cdfeih.yjs.java.ydoc;
 
-import com.yjs.java.crdt.CRDT;
-import com.yjs.java.crdt.operation.CRDTOperation;
+import com.cdfeih.yjs.java.crdt.CRDT;
+import com.cdfeih.yjs.java.crdt.operation.CRDTOperation;
 import lombok.Getter;
 import lombok.Setter;
 

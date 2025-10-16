@@ -1,8 +1,8 @@
 package com.cdfeih.yjs.java.crdt.types;
 
-import com.yjs.java.crdt.BaseCRDT;
-import com.yjs.java.crdt.CRDT;
-import com.yjs.java.crdt.operation.CRDTOperation;
+import com.cdfeih.yjs.java.crdt.BaseCRDT;
+import com.cdfeih.yjs.java.crdt.CRDT;
+import com.cdfeih.yjs.java.crdt.operation.CRDTOperation;
 import lombok.Getter;
 import lombok.Setter;
 
