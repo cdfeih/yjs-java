@@ -1,4 +1,4 @@
-package com.yjs.java;
+package com.cdfeih.yjs.java;
 
 import com.yjs.java.crdt.operation.BaseCRDTOperation;
 import com.yjs.java.crdt.operation.CRDTOperation;

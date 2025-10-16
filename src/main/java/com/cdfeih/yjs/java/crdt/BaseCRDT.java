@@ -1,4 +1,4 @@
-package com.yjs.java.crdt;
+package com.cdfeih.yjs.java.crdt;
 
 import lombok.Getter;
 import lombok.Setter;

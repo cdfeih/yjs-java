@@ -1,4 +1,4 @@
-package com.yjs.java.config;
+package com.cdfeih.yjs.java.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;

@@ -1,4 +1,4 @@
-package com.yjs.java.crdt.types;
+package com.cdfeih.yjs.java.crdt.types;
 
 import com.yjs.java.crdt.BaseCRDT;
 import com.yjs.java.crdt.CRDT;

@@ -11,7 +11,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.yjs.java</groupId>
+    <groupId>com.cdfeih.yjs.java</groupId>
     <artifactId>yjs-java</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>yjs-java</name>
