@@ -3,6 +3,8 @@
 
 # YJS-Java: Java实现的YJS (CRDT) 库
 
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 YJS-Java是一个使用Java实现的YJS (CRDT) 库，基于Spring Boot 3和JDK 21开发。它提供了分布式数据结构的实现，支持实时协作编辑和数据同步。
 
 ## 功能特性
@@ -244,6 +246,6 @@ mvn test
 - 优化大文档的性能
 - 实现离线操作支持
 
-## License
+## 许可证
 
-[MIT](LICENSE)
+本项目采用 Apache License 2.0 许可证，详情请见 [LICENSE](LICENSE) 文件。
